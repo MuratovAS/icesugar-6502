@@ -24,6 +24,8 @@ FW_SRC_FILE = $(shell echo $(FW_SRC)/*.c)
 FW_ASM_FILE = $(shell echo $(FW_DIR)/*.s)
 FW_LIB_FILE = $(shell echo $(FW_DIR)/lib/*.lib)
 FW_CFG_FILE = $(shell echo $(FW_DIR)/sbc.cfg)
+CLFLAGS  = -t none -O --cpu 6502 -C $(FW_CFG_FILE)
+HEXDUMP_ARGS = -v -e '1/1 "%02x " "\n"'
 
 # ----------------------------------------------------------------------------------
 
@@ -38,7 +40,7 @@ all:  synthesis
 
 synthesis: $(BUILD_DIR)/$(PROJ).bin
 # rules for building the blif file
-$(BUILD_DIR)/%.json: $(TOP_FILE) build_fw $(FPGA_SRC)/*.v
+$(BUILD_DIR)/%.json: $(TOP_FILE) build_fw $(FPGA_SRC)/*.v $(FPGA_SRC)/6502/*.v
 # FIXME:	
 	yosys -q  -f "verilog -D__def_fw_img=\"$(BUILD_DIR)/$(PROJ)_fw.hex\"" -l $(BUILD_DIR)/build.log -p '$(SERIES) $(YOSYS_ARG) -top top -json $@; show -format dot -prefix $(BUILD_DIR)/$(PROJ)' $< 
 # asc
@@ -57,7 +59,7 @@ $(BUILD_DIR)/%.vcd: $(BUILD_DIR)/$(PROJ).out
 	mv ./*.vcd $(BUILD_DIR)
 
 #$(FPGA_SRC)/tv80/*.v
-$(BUILD_DIR)/%.out: $(FPGA_SRC)/*.v
+$(BUILD_DIR)/%.out: $(FPGA_SRC)/*.v $(FPGA_SRC)/6502/*.v
 	iverilog -o $@ -DNO_ICE40_DEFAULT_ASSIGNMENTS -D__def_fw_img=\"$(BUILD_DIR)/$(PROJ)_fb.vhex\" -B $(TOOLCHAIN_PATH)/tools-oss-cad-suite/lib/ivl $(TOOLCHAIN_PATH)/tools-oss-cad-suite/share/yosys/ice40/cells_sim.v $(TOP_FILE) $(TB_FILE)
 
 # Flash memory firmware
@@ -74,13 +76,10 @@ formatter:
 
 build_fw: $(BUILD_DIR)/$(PROJ)_fw.hex
 # build tools & options
-CLFLAGS  = -t none -O --cpu 6502 -C $(FW_CFG_FILE)
-HEXDUMP_ARGS = -v -e '1/1 "%02x " "\n"'
-
 $(BUILD_DIR)/$(PROJ)_fw.hex: $(BUILD_DIR)/$(PROJ)_fw.bin
 	hexdump $(HEXDUMP_ARGS) $< > $@
 
-$(BUILD_DIR)/$(PROJ)_fw.bin: $(FW_SRC_FILE)
+$(BUILD_DIR)/$(PROJ)_fw.bin: $(FW_SRC_FILE) $(FW_ASM_FILE) $(FW_INCLUDE)/*.h
 	cl65 $(CLFLAGS) -o $@ -m $(BUILD_DIR)/$(PROJ)_fw.map -I $(FW_INCLUDE) $(FW_SRC_FILE) $(FW_ASM_FILE) $(FW_LIB_FILE)
 
 clean:

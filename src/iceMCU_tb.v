@@ -39,8 +39,7 @@ module iceMCU_tb;
     
     // Unit under test
     iceMCU uut(
-        .clk(clk),              // 4.028MHz dot clock
-        .reset(reset),          // Low-true reset
+        .clk(clk),
         .gpio_o(gpio_o),        // gpio output
         .gpio_i(gpio_i),        // gpio input
         .RX(RX),                // serial input

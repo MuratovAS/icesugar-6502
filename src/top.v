@@ -10,74 +10,56 @@ module top(
 	
 	// LED
 	output LED_B, LED_R, LED_G,
-	
-	input SW_1,
-	input SW_2,
-	input SW_3,
-	input SW_4,
-
-	output DEBUG_0,
-	output DEBUG_1,
-	output DEBUG_2,
-	output DEBUG_3,
-	output DEBUG_4,
-	output DEBUG_5,
-	output DEBUG_6,
-	output DEBUG_7
+	input [3:0] SW,
+	output [7:0] DEBUG
 
 );
     wire [7:0] gpio_o;	// output
     wire [7:0] gpio_i;	// input
 
 	// clock generator
-	wire clk_48;
-
-	SB_HFOSC inthosc (
-		.CLKHFPU(1'b1),
-		.CLKHFEN(1'b1),
-		.CLKHF(clk_48)
+	wire clk_48m;
+	wire clk_12m;
+	
+	//internal oscillators seen as modules
+	//Source = 48MHz, CLKHF_DIV = 2’b00 : 00 = div1, 01 = div2, 10 = div4, 11 = div8 ; Default = “00”
+	SB_HFOSC #(.CLKHF_DIV("0b10")) SB_HFOSC_inst (
+		.CLKHFEN(32'b1),
+		.CLKHFPU(32'b1),
+		.CLKHF(clk_12m)
 	);
+
+	//10khz used for low power applications (or sleep mode)
+	/*SB_LFOSC SB_LFOSC_inst(
+		.CLKLFEN(1),
+		.CLKLFPU(1),
+		.CLKLF(clk_10k)
+	);*/
 	
-	// clock divider generates 50% duty 12MHz clock
-	reg [1:0] cnt;
-	initial
-        cnt <= 2'b00;
-        
-	always @(posedge clk_48)
-	begin
-        cnt <= cnt + 2'b01;
-	end
-    wire clk = cnt[1];
-	
-	// reset generator waits > 10us
-	reg [7:0] reset_cnt;
-	reg reset;
-	initial
-        reset_cnt <= 8'h00;
-    
-	always @(posedge clk)
-	begin
-		if(reset_cnt != 8'hff)
-        begin
-            reset_cnt <= reset_cnt + 8'h01;
-            reset <= 1'b1;
-        end
-        else
-            reset <= 1'b0;
-	end
-    
+	// toolchain-ice40/bin/icepll
+	/*SB_PLL40_CORE #(
+      .FEEDBACK_PATH("SIMPLE"),
+      .PLLOUT_SELECT("GENCLK"),
+      .DIVR(4'b0000),
+      .DIVF(7'b0001111),
+      .DIVQ(3'b101),
+      .FILTER_RANGE(3'b100),
+    ) SB_PLL40_CORE_inst (
+      .RESETB(1'b1),
+      .BYPASS(1'b0),
+      .PLLOUTCORE(clk_48m),
+      .REFERENCECLK(clk_12m)
+   );*/
+
 	// test unit
 	iceMCU uut(
-		.clk(clk),
-		.reset(reset),
+		.clk(clk_12m),
 		
 		.gpio_o(gpio_o),
 		.gpio_i(gpio_i),
     
         .RX(uart_rxd),
-        .TX(uart_txd),
-    
-        .CPU_IRQ(DEBUG_0)
+        .TX(uart_txd)
 	);
     
 	// RGB LED Driver from top 3 bits of gpio

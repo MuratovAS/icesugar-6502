@@ -18,6 +18,8 @@
  * on the output pads if external memory is required.
  */
 
+`include "src/6502/ALU.v"
+
 module cpu( clk, reset, AB, DI, DO, WE, IRQ, NMI, RDY );
 
 input clk;              // CPU clock 

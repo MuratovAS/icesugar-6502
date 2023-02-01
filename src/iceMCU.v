@@ -1,24 +1,29 @@
-// tst_6502.v - test 6502 core
-// 02-11-19 E. Brombaugh
-
 `include "src/acia.v"
-`include "src/ALU.v"
-`include "src/cpu.v"
+`include "src/6502/cpu.v"
 `include "src/ram_32kb.v"
 `include "src/uart.v"
 
 module iceMCU(
-    input clk,              // 4..0MHz CPU clock
-    input reset,            // Low-true reset
-    
-	output reg [7:0] gpio_o,
+    input clk,
+	output [7:0] gpio_o,
 	input [7:0] gpio_i,
-	
 	input RX,				// serial RX
-	output TX,				// serial TX
-    
-    output CPU_IRQ          // diagnostic
+	output TX				// serial TX
 );
+	reg [7:0] gpio_o;
+	reg sys_reset = 1'b1;
+
+	wire reset;
+
+	assign reset = sys_reset;
+	
+	always @(posedge clk) begin
+		if( sys_reset == 1'b1 ) 
+		begin
+			sys_reset	<= 1'b0;
+		end
+	end
+
     // The 6502
     wire [15:0] CPU_AB;
     reg [7:0] CPU_DI;
