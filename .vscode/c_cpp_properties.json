@@ -1,0 +1,17 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "firmware/include",
+                "/opt/fpga/cc65/include/**"
+            ],
+            "defines": [
+                "__fastcall__=/**/"
+            ],
+            "cStandard": "gnu99",
+            "compilerPath": ""
+        }
+    ],
+    "version": 4
+}

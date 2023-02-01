@@ -1,0 +1,37 @@
+{
+    "verilog.linting.linter": "iverilog",
+    "verilog.linting.path": "/opt/fpga/tools-oss-cad-suite/bin/",
+    "verilog.linting.iverilog.arguments": "-B /opt/fpga/tools-oss-cad-suite/lib/ivl /opt/fpga/tools-oss-cad-suite/share/yosys/ice40/cells_sim.v",
+    "VsCodeTaskButtons.showCounter": false,
+    "VsCodeTaskButtons.tasks": [
+        {
+            "label": "$(server-process) Make",
+            "task": "PRJ: make",
+        },
+        {
+            "label": "$(debug-console) Flash",
+            "task": "PRJ: flash",
+        },
+        {
+            "label": "$(test-view-icon) Simulator",
+            "task": "PRJ: simulator",
+        },
+        {
+            "label": "$(edit) Formatter",
+            "task": "PRJ: formatter",
+        },
+        
+        {
+            "label": "$(run) Build FW",
+            "task": "PRJ: build fw",
+        },
+        {
+            "label": "$(notebook-delete-cell) Clean",
+            "task": "PRJ: clean",
+        },
+    ],
+    "files.associations": {
+        "icez0mb1e.h": "c",
+        "cmd.h": "c"
+    }
+}
