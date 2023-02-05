@@ -17,8 +17,8 @@
 
 // registers
 #define GPIO_DATA (*(unsigned char *) 0x8000)
-#define UART_DATA (*(unsigned char *) 0xE000)
-#define UART_STAT (*(unsigned char *) 0xE001)
+#define UART_DATA (*(unsigned char *) 0x8010)
+#define UART_STAT (*(unsigned char *) 0x8011)
 
 // bits
 #define UART_STAT_TXE 0b00000001

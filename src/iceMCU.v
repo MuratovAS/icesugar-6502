@@ -57,8 +57,8 @@ module iceMCU#(
     
 	// address decode
 	wire ram_sel = (CPU_AB < RAM_SIZE) ? 1 : 0;
-	wire gpio_sel = (CPU_AB[15:12] == 4'h8) ? 1 : 0;
-	wire uart_sel = (CPU_AB[15:12] == 4'he) ? 1 : 0;
+	wire gpio_sel = (CPU_AB[15:12] == 4'h8) && (CPU_AB[11:4] == 8'h00) ? 1 : 0;
+	wire uart_sel = (CPU_AB[15:12] == 4'h8) && (CPU_AB[11:4] == 8'h01) ? 1 : 0;
 	wire rom_sel = (CPU_AB >= ROM_LOC) & (CPU_AB < (ROM_LOC+ROM_SIZE)) ? 1 : 0;
 	
 	// data mux
@@ -131,7 +131,7 @@ module iceMCU#(
 		.din(CPU_DO),			// data bus input
 		.dout(uart_do),			// data bus output
 		.rx(RX),				// serial receive
-		.tx(TX),					// serial transmit
+		.tx(TX),				// serial transmit
 		.debug(debug)
 	);
 	defparam uuart.UART_CLK = 12000000;
