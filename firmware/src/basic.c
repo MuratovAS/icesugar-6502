@@ -56,7 +56,7 @@ void viewMemory(uint8_t *mem, uint16_t len)
             snprintf(strbuf, sizeof(strbuf), "\r\n%04X: ", x);
             uart_write(strbuf);
         }
-        snprintf(strbuf, sizeof(strbuf), "%02X", mem[x]);
+        snprintf(strbuf, sizeof(strbuf), " %02X", mem[x]);
         uart_write(strbuf);
     }
 

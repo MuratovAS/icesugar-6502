@@ -19,8 +19,8 @@ int main()
     snprintf(strbuf, sizeof(strbuf), "Hello world, 6502 SoC\r\n");
     uart_write(strbuf);
 
-	// enable ACIA RX IRQ
-	// asm("CLI");
+    //asm("SEI");		// disable IRQ
+	//asm("CLI");		// enable IRQ
 
 	#if defined(WDT)
         WDTDIV(240);
@@ -38,7 +38,7 @@ int main()
         {
             case 'a': // Test portA
                 GPIO_DATA = getchar();
-                snprintf(strbuf, sizeof(strbuf), "port_a = ");
+                snprintf(strbuf, sizeof(strbuf), "GPIO_DATA = ");
                 uart_write(strbuf);
                 printBits(sizeof(GPIO_DATA), GPIO_DATA);
                 snprintf(strbuf, sizeof(strbuf), "\n\r");

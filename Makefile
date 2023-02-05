@@ -20,8 +20,9 @@ TB_FILE :=  $(shell echo $(FPGA_SRC)/*_tb.v)
 FW_DIR = firmware
 FW_INCLUDE = $(FW_DIR)/include
 FW_SRC = $(FW_DIR)/src
+FW_LIB = $(FW_DIR)/lib
 FW_SRC_FILE = $(shell echo $(FW_SRC)/*.c)
-FW_ASM_FILE = $(shell echo $(FW_DIR)/*.s)
+FW_ASM_FILE = $(shell echo $(FW_DIR)/*.s | sed 's@$(FW_DIR)/crt0.s@@' )
 FW_LIB_FILE = $(shell echo $(FW_DIR)/lib/*.lib)
 FW_CFG_FILE = $(shell echo $(FW_DIR)/sbc.cfg)
 CLFLAGS  = -t none -O --cpu 6502 -C $(FW_CFG_FILE)
@@ -79,8 +80,13 @@ build_fw: $(BUILD_DIR)/$(PROJ)_fw.hex
 $(BUILD_DIR)/$(PROJ)_fw.hex: $(BUILD_DIR)/$(PROJ)_fw.bin
 	hexdump $(HEXDUMP_ARGS) $< > $@
 
-$(BUILD_DIR)/$(PROJ)_fw.bin: $(FW_SRC_FILE) $(FW_ASM_FILE) $(FW_INCLUDE)/*.h
+$(BUILD_DIR)/$(PROJ)_fw.bin: $(FW_SRC_FILE) $(FW_ASM_FILE) $(FW_LIB_FILE) $(FW_INCLUDE)/*.h
 	cl65 $(CLFLAGS) -o $@ -m $(BUILD_DIR)/$(PROJ)_fw.map -I $(FW_INCLUDE) $(FW_SRC_FILE) $(FW_ASM_FILE) $(FW_LIB_FILE)
+
+sbc.lib:
+	ca65 $(FW_DIR)/crt0.s
+	ar65 a $(FW_LIB)/sbc.lib $(FW_DIR)/crt0.o
+	rm $(FW_DIR)/crt0.o
 
 clean:
 	rm -f $(BUILD_DIR)/*
