@@ -60,7 +60,7 @@ $(BUILD_DIR)/%.vcd: $(BUILD_DIR)/$(PROJ).out
 
 #$(FPGA_SRC)/tv80/*.v
 $(BUILD_DIR)/%.out: $(FPGA_SRC)/*.v $(FPGA_SRC)/6502/*.v
-	iverilog -o $@ -DNO_ICE40_DEFAULT_ASSIGNMENTS -D__def_fw_img=\"$(BUILD_DIR)/$(PROJ)_fb.vhex\" -B $(TOOLCHAIN_PATH)/tools-oss-cad-suite/lib/ivl $(TOOLCHAIN_PATH)/tools-oss-cad-suite/share/yosys/ice40/cells_sim.v $(TOP_FILE) $(TB_FILE)
+	iverilog -o $@ -DNO_ICE40_DEFAULT_ASSIGNMENTS -D__def_fw_img=\"$(BUILD_DIR)/$(PROJ)_fb.hex\" -B $(TOOLCHAIN_PATH)/tools-oss-cad-suite/lib/ivl $(TOOLCHAIN_PATH)/tools-oss-cad-suite/share/yosys/ice40/cells_sim.v $(TOP_FILE) $(TB_FILE)
 
 # Flash memory firmware
 flash: $(BUILD_DIR)/$(PROJ).bin

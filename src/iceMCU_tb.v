@@ -38,11 +38,12 @@ module iceMCU_tb;
     end
     
     // Unit under test
-    iceMCU uut(
+    iceMCU ucpu(
         .clk(clk),
         .gpio_o(gpio_o),        // gpio output
         .gpio_i(gpio_i),        // gpio input
         .RX(RX),                // serial input
         .TX(TX)                 // serial output
     );
+    defparam core.RAM_TYPE = 0; // 0 => BRAM, 1 => SPRAM (UltraPlus)
 endmodule

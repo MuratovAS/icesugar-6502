@@ -1,22 +1,36 @@
-`include "src/acia.v"
 `include "src/6502/cpu.v"
-`include "src/ram_32kb.v"
-`include "src/uart.v"
+`include "src/memspram.v"
+`include "src/membram.v"
+`include "src/uart_wrapper.v"
 
-module iceMCU(
+module iceMCU#(
+	parameter RAM_TYPE = 0,
+	parameter RAM_WIDTH = 15,
+	parameter ROM_WIDTH = 12,
+	parameter ROM_LOC = 16'hF000
+)(
     input clk,
 	output [7:0] gpio_o,
 	input [7:0] gpio_i,
 	input RX,				// serial RX
-	output TX				// serial TX
+	output TX,				// serial TX
+	output [7:0] debug
 );
+	// param
+	localparam ROM_SIZE = (1 << ROM_WIDTH);
+	localparam RAM_SIZE = (1 << RAM_WIDTH);
+
+	// reg
 	reg [7:0] gpio_o;
 	reg sys_reset = 1'b1;
 
+	// wire
 	wire reset;
 
+	// assign
 	assign reset = sys_reset;
 	
+	// init
 	always @(posedge clk) begin
 		if( sys_reset == 1'b1 ) 
 		begin
@@ -36,69 +50,91 @@ module iceMCU(
         .DI(CPU_DI),
         .DO(CPU_DO),
         .WE(CPU_WE),
-        .IRQ(CPU_IRQ),
+        .IRQ(1'b0),
         .NMI(1'b0),
         .RDY(1'b1)
     );
     
 	// address decode
-	wire ram_sel = (CPU_AB[15] == 1'b0) ? 1 : 0;
-	wire gpio_sel = (CPU_AB[15:12] == 4'hd) ? 1 : 0;
-	wire acia_sel = (CPU_AB[15:12] == 4'he) ? 1 : 0;
-	wire rom_sel = (CPU_AB[15:12] == 4'hf) ? 1 : 0;
+	wire ram_sel = (CPU_AB < RAM_SIZE) ? 1 : 0;
+	wire gpio_sel = (CPU_AB[15:12] == 4'h8) ? 1 : 0;
+	wire uart_sel = (CPU_AB[15:12] == 4'he) ? 1 : 0;
+	wire rom_sel = (CPU_AB >= ROM_LOC) & (CPU_AB < (ROM_LOC+ROM_SIZE)) ? 1 : 0;
 	
-    // 32k RAM
+	// data mux
+	reg [3:0] mux_sel;
+	always @(posedge clk)
+		mux_sel <= {rom_sel,uart_sel,gpio_sel,ram_sel};
+	always @(*)
+		casez(mux_sel)
+			4'b0001: CPU_DI = ram_do;
+			4'b001z: CPU_DI = gpio_do;
+			4'b01zz: CPU_DI = uart_do;
+			4'b1zzz: CPU_DI = rom_do;
+			default: CPU_DI = rom_do;
+		endcase
+		
+
     wire [7:0] ram_do;
-    RAM_32kB uram(
-        .clk(clk),
-        .sel(ram_sel),
-        .we(CPU_WE),
-        .addr(CPU_AB[14:0]),
-        .din(CPU_DO),
-        .dout(ram_do)
-    );
-    
+	//generate
+    if(RAM_TYPE == 0) begin
+		// FPGA BRAM
+		membram #(RAM_WIDTH) uram
+		(
+			.clk(clk),
+			.sel(ram_sel),
+			.we(CPU_WE),
+			.addr(CPU_AB[RAM_WIDTH-1:0]),
+			.din(CPU_DO),
+			.dout(ram_do)
+		);
+	end else if(RAM_TYPE == 1) begin
+		// UltraPlus SPRAM
+		memspram uram(
+			.clk(clk),
+			.sel(ram_sel),
+			.we(CPU_WE),
+			.addr(CPU_AB[RAM_WIDTH-1:0]),
+			.din(CPU_DO),
+			.dout(ram_do)
+		);
+    end
+	//endgenerate
+	
+    wire [7:0] rom_do;
+	membram #(ROM_WIDTH, `__def_fw_img, 1) urom
+	(
+			.clk(clk),
+			.sel(rom_sel),
+			.we(CPU_WE),
+			.addr(CPU_AB[ROM_WIDTH-1:0]),
+			.din(CPU_DO),
+			.dout(rom_do)
+	);
+
 	// GPIO @ page 10-1f
 	reg [7:0] gpio_do;
 	always @(posedge clk)
 		if((CPU_WE == 1'b1) && (gpio_sel == 1'b1))
 			gpio_o <= CPU_DO;
 	always @(posedge clk)
-		gpio_do <= gpio_i;
+		gpio_do <= gpio_o;
+		//gpio_do <= gpio_i;
 	
-	// ACIA at page 20-2f
-	wire [7:0] acia_do;
-	acia uacia(
+	wire [7:0] uart_do;
+	uart_wrapper uuart(
 		.clk(clk),				// system clock
 		.rst(reset),			// system reset
-		.cs(acia_sel),			// chip select
+		.cs(uart_sel),			// chip select
 		.we(CPU_WE),			// write enable
-		.rs(CPU_AB[0]),			// register select
-		.rx(RX),				// serial receive
+		.addr(CPU_AB[1:0]),		// addr bus input
 		.din(CPU_DO),			// data bus input
-		.dout(acia_do),			// data bus output
-		.tx(TX),				// serial transmit
-		.irq(CPU_IRQ)			// interrupt request
+		.dout(uart_do),			// data bus output
+		.rx(RX),				// serial receive
+		.tx(TX),					// serial transmit
+		.debug(debug)
 	);
-	
-	// ROM @ pages f0,f1...
-    reg [7:0] rom_mem[4095:0];
-	reg [7:0] rom_do;
-	initial
-        $readmemh("build/icesugar-6502_fw.hex",rom_mem);
-	always @(posedge clk)
-		rom_do <= rom_mem[CPU_AB[11:0]];
+	defparam uuart.UART_CLK = 12000000;
+	defparam uuart.BAUD_RATE = 115200;
 
-	// data mux
-	reg [3:0] mux_sel;
-	always @(posedge clk)
-		mux_sel <= {rom_sel,acia_sel,gpio_sel,ram_sel};
-	always @(*)
-		casez(mux_sel)
-			4'b0001: CPU_DI = ram_do;
-			4'b001z: CPU_DI = gpio_do;
-			4'b01zz: CPU_DI = acia_do;
-			4'b1zzz: CPU_DI = rom_do;
-			default: CPU_DI = rom_do;
-		endcase
 endmodule

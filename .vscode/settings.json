@@ -32,6 +32,8 @@
     ],
     "files.associations": {
         "icez0mb1e.h": "c",
-        "cmd.h": "c"
+        "cmd.h": "c",
+        "fpga.h": "c",
+        "uart.h": "c"
     }
 }

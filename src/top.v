@@ -51,17 +51,18 @@ module top(
       .REFERENCECLK(clk_12m)
    );*/
 
-	// test unit
-	iceMCU uut(
-		.clk(clk_12m),
-		
-		.gpio_o(gpio_o),
-		.gpio_i(gpio_i),
-    
-        .RX(uart_rxd),
-        .TX(uart_txd)
-	);
-    
+	//rx
+	wire	txpin, rxpin;
+	wire	rxpinmeta1,c_rxpinmeta1;
+	SB_IO #( .PIN_TYPE(6'b000000)) // NO_OUTPUT/INPUT_REGISTERED
+	IO_rx     ( .PACKAGE_PIN(uart_rxd), .INPUT_CLK(clk_12m),  .D_IN_0(rxpinmeta1) );
+	SB_LUT4 #( .LUT_INIT(16'haaaa))
+		cmb( .O(c_rxpinmeta1), .I3(1'b0), .I2(1'b0), .I1(1'b0), .I0(rxpinmeta1));
+	SB_DFF metareg( .Q(rxpin), .C(clk_12m), .D(c_rxpinmeta1));
+	//tx
+	SB_IO #( .PIN_TYPE(6'b011111)) // OUTPUT_REGISTERED_INVERTED/INPUT_LATCH
+		IO_tx( .PACKAGE_PIN(uart_txd), .OUTPUT_CLK(clk_12m), .D_OUT_0(txpin) );
+
 	// RGB LED Driver from top 3 bits of gpio
 	SB_RGBA_DRV #(
 		.CURRENT_MODE("0b1"),
@@ -78,5 +79,18 @@ module top(
 		.RGB1(LED_R),
 		.RGB2(LED_G)
 	);
+
+	// core unit
+	iceMCU core(
+		.clk(clk_12m),
+		
+		.gpio_o(gpio_o),
+		.gpio_i(gpio_i),
+    
+        .RX(rxpin),
+        .TX(txpin),
+		.debug(DEBUG)
+	);
+    defparam core.RAM_TYPE = 1; // 0 => BRAM, 1 => SPRAM (UltraPlus)
 
 endmodule

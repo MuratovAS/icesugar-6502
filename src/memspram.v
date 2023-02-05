@@ -1,38 +1,26 @@
-// ram_32kb.v - 32k byte inferred RAM
+// memspram.v - 32k byte inferred RAM
 // 03-11-18 E. Brombaugh
 
-module RAM_32kB(
+module memspram #(
+    parameter ADDR_WIDTH = 15 //max 15
+)(
     input clk,
     input sel,
     input we,
-    input [14:0] addr,
+    input [ADDR_WIDTH-1:0] addr,
     input [7:0] din,
-    output reg [7:0] dout
+    output [7:0] dout
 );
-//`define SIMULATE
-`ifdef SIMULATE
-	integer i;
-    reg [7:0] memory[0:32767];
-	
-	// clear RAM to avoid simulation errors
-	initial
-		for (i = 0; i < 32768; i = i +1)
-			memory[i] <= 0;
-    
-    // synchronous write
-    always @(posedge clk)
-        if(sel & we)
-            memory[addr] <= din;
-    
-    // synchronous read
-    always @(posedge clk)
-        dout <= memory[addr];
-`else
+	reg [7:0] dout;
 	wire [15:0] data;
 	
+	//SB_SPRAM256KA.ADDRESS is 14bit:
+	wire [13:0] addr_sp;
+	assign addr_sp = addr[ADDR_WIDTH-1:1];
+
     // instantiate the big RAM
 	SB_SPRAM256KA mem (
-		.ADDRESS(addr[14:1]),
+		.ADDRESS(addr_sp),
 		.DATAIN({din,din}),
 		.MASKWREN(addr[0]?4'b1100:4'b0011),
 		.WREN(we),
@@ -51,5 +39,4 @@ module RAM_32kB(
 	
 	always @(*)
 		dout = hilo_sel ? data[15:8] : data[7:0];
-`endif
 endmodule
