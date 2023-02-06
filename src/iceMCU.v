@@ -6,8 +6,8 @@
 module iceMCU#(
 	parameter RAM_TYPE = 0,
 	parameter RAM_WIDTH = 15,
-	parameter ROM_WIDTH = 12,
-	parameter ROM_LOC = 16'hF000
+	parameter ROM_WIDTH = 13,
+	parameter ROM_LOC = 16'hE000
 )(
     input clk,
 	output [7:0] gpio_o,
@@ -90,7 +90,7 @@ module iceMCU#(
 		);
 	end else if(RAM_TYPE == 1) begin
 		// UltraPlus SPRAM
-		memspram uram(
+		memspram #(RAM_WIDTH) uram(
 			.clk(clk),
 			.sel(ram_sel),
 			.we(CPU_WE),
