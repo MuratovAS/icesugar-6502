@@ -20,6 +20,9 @@ module spi_wrapper#(
 	input  miso,
     output spi_cs
 );
+    `define COM_START  command[0]
+    `define COM_FINISH command[1]
+
 	reg [7:0] dout;
 
 	reg[7:0] command = 8'h0;
@@ -40,8 +43,8 @@ module spi_wrapper#(
 		1'b0,			// bit 4 
 		1'b0,			// bit 3 
 		1'b0,			// bit 2 
-		command[1],		// bit 1
-		command[0]		// bit 0
+		`COM_FINISH,		// bit 1
+		`COM_START		// bit 0
 	};
 
     always @(posedge clk)
@@ -59,22 +62,15 @@ module spi_wrapper#(
 				2'h0 : data_wr <= din;
 				2'h1 : command <= din;
             endcase
+			err <= ~status[0];
         end
 
-		if( command[0] == 1'b1 ) begin
-			command[0] <= 1'b0;
+		if( `COM_START == 1'b1 ) begin
+			`COM_START <= 1'b0;
 		end
 
 		if(rst)
-			command[1] <= 1'b0;
-
-    end
-    
-	always @(posedge clk)
-    begin
-        if (transmit) begin
-            err <= ~status[0];
-        end
+			`COM_FINISH <= 1'b0;
     end
 
 	//clock cycle
@@ -91,8 +87,8 @@ module spi_wrapper#(
 
 		.req_next		(req_next),
 
-		.start			(command[0]),
-		.finish			(command[1]),
+		.start			(`COM_START),
+		.finish			(`COM_FINISH),
 
 		.CPOL			(CPOL),
 		.CPHA			(CPHA),
