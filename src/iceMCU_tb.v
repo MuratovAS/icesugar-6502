@@ -42,8 +42,8 @@ module iceMCU_tb;
         .clk(clk),
         .gpio_o(gpio_o),        // gpio output
         .gpio_i(gpio_i),        // gpio input
-        .RX(RX),                // serial input
-        .TX(TX)                 // serial output
+        .uart_rx(RX),                // serial input
+        .uart_tx(TX)                 // serial output
     );
     defparam core.RAM_TYPE = 0; // 0 => BRAM, 1 => SPRAM (UltraPlus)
 endmodule

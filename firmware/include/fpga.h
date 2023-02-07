@@ -26,4 +26,17 @@
 #define UART_STAT_ERR 0b00000000
 #define UART_STAT_IRQ 0b00000000
 
+
+
+// registers
+#define SPI_DATA (*(unsigned char *) 0x8020)
+#define SPI_CMD (*(unsigned char *) 0x8021)
+#define SPI_STAT (*(unsigned char *) 0x8021)
+
+// bits
+#define SPI_CMD_START   0b00000001
+#define SPI_CMD_FINISH  0b00000010
+#define SPI_STAT_REQ    0b10000000
+#define SPI_STAT_ERR    0b01000000
+
 #endif

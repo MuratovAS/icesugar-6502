@@ -6,7 +6,13 @@ Here you will find a project for IceSugar implementing 6502.
 As well as full automation of assembly and testing.
 More detailed documentation on usage in the [FPGACode-ide](https://github.com/MuratovAS/FPGACode-ide).
 
-This project is based on the developments of [up5k_6502](https://github.com/emeb/up5k_6502)
+This project is based on the developments of [up5k_6502](https://github.com/emeb/up5k_6502) and [uart_ice40](https://github.com/bnossum/uart_ice40) and [iceZ0mb1e](https://github.com/abnoname/iceZ0mb1e)
+
+What is done:
+- RAM: SPRAM or BRAM
+- ROM: BRAM (TODO: or SPI FLASH)
+- UART: Minimal size uart
+- SPI: Classic spi
 
 ## Usage
 

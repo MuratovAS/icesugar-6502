@@ -41,7 +41,7 @@ all:  synthesis
 
 synthesis: $(BUILD_DIR)/$(PROJ).bin
 # rules for building the blif file
-$(BUILD_DIR)/%.json: $(TOP_FILE) build_fw $(FPGA_SRC)/*.v $(FPGA_SRC)/6502/*.v
+$(BUILD_DIR)/%.json: $(TOP_FILE) build_fw $(FPGA_SRC)/*.v $(FPGA_SRC)/*/*.v
 # FIXME:	
 	yosys -q  -f "verilog -D__def_fw_img=\"$(BUILD_DIR)/$(PROJ)_fw.hex\"" -l $(BUILD_DIR)/build.log -p '$(SERIES) $(YOSYS_ARG) -top top -json $@; show -format dot -prefix $(BUILD_DIR)/$(PROJ)' $< 
 # asc
@@ -59,8 +59,7 @@ $(BUILD_DIR)/%.vcd: $(BUILD_DIR)/$(PROJ).out
 	vvp -v -M $(TOOLCHAIN_PATH)/tools-oss-cad-suite/lib/ivl $< 
 	mv ./*.vcd $(BUILD_DIR)
 
-#$(FPGA_SRC)/tv80/*.v
-$(BUILD_DIR)/%.out: $(FPGA_SRC)/*.v $(FPGA_SRC)/6502/*.v
+$(BUILD_DIR)/%.out: $(FPGA_SRC)/*.v $(FPGA_SRC)/*/*.v
 	iverilog -o $@ -DNO_ICE40_DEFAULT_ASSIGNMENTS -D__def_fw_img=\"$(BUILD_DIR)/$(PROJ)_fb.hex\" -B $(TOOLCHAIN_PATH)/tools-oss-cad-suite/lib/ivl $(TOOLCHAIN_PATH)/tools-oss-cad-suite/share/yosys/ice40/cells_sim.v $(TOP_FILE) $(TB_FILE)
 
 # Flash memory firmware
@@ -83,6 +82,7 @@ $(BUILD_DIR)/$(PROJ)_fw.hex: $(BUILD_DIR)/$(PROJ)_fw.bin
 $(BUILD_DIR)/$(PROJ)_fw.bin: $(FW_SRC_FILE) $(FW_ASM_FILE) $(FW_LIB_FILE) $(FW_INCLUDE)/*.h
 	cl65 $(CLFLAGS) -o $@ -m $(BUILD_DIR)/$(PROJ)_fw.map -I $(FW_INCLUDE) $(FW_SRC_FILE) $(FW_ASM_FILE) $(FW_LIB_FILE)
 
+# build crt0
 sbc.lib:
 	ca65 $(FW_DIR)/crt0.s
 	ar65 a $(FW_LIB)/sbc.lib $(FW_DIR)/crt0.o

@@ -1,7 +1,7 @@
 // uart_wrapper.v - strippped-down version of MC6850 ACIA wrapped around FOSS UART
 // 03-02-19 E. Brombaugh
 
-`include "src/uart.v"
+`include "src/ext/uart.v"
 
 module uart_wrapper#(
 	parameter UART_CLK = 12000000,
@@ -57,7 +57,7 @@ module uart_wrapper#(
 	// reset receive flag
 	always @(posedge clk)
 	begin
-		if(receive)
+		if(receive || rst)
 			receiveFlag <= 1'b0;
 		if(bytercvd)
 			receiveFlag <= 1'b1;

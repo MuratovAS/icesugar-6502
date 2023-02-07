@@ -6,6 +6,7 @@
  
 #include "basic.h"
 #include "uart.h"
+#include "spi.h"
 #include "main.h"
 
 int8_t start = 0;
@@ -28,7 +29,7 @@ int main()
         WDTRST;
     #endif
  	
-	snprintf(strbuf, sizeof(strbuf), "Action key:\n\r a - Test portA \n\r d - Test DMA \n\r r - CPU Reset \n\r c - View ROM \n\r m - View RAM \n\r t - Test RAM \n\r");
+	snprintf(strbuf, sizeof(strbuf), "Action key:\n\r a - Test portA \n\r s - Test SPI Flash\n\r d - Test DMA \n\r r - CPU Reset \n\r c - View ROM \n\r m - View RAM \n\r t - Test RAM \n\r");
     uart_write(strbuf);
     while(1)
     {
@@ -49,6 +50,16 @@ int main()
                 break;
             case 'c': // View ROM
                 viewMemory((uint8_t*)SYS_ROM_ADDR, SYS_ROM_SIZE);
+                break;            
+            case 's': // View SPI
+                {
+                    uint16_t len = 64;
+                    uint8_t buffer[64] = {0};
+                    uint8_t spi_send[4] = {0x03, 0x00, 0x00, 0x00};
+                    spi_xfer_single(0xAB);
+                    spi_xfer(spi_send, buffer, 4, len);
+                    viewMemory(&(buffer[4]), len-4);
+                }
                 break;
             /*case 'd': // Test DMA
                 snprintf(strbuf, sizeof(strbuf), "Test DMA A(0x8000) -> B(0x8010)x8\n\r");

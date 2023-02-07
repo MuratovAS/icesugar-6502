@@ -2,6 +2,7 @@
 `include "src/memspram.v"
 `include "src/membram.v"
 `include "src/uart_wrapper.v"
+`include "src/spi_wrapper.v"
 
 module iceMCU#(
 	parameter RAM_TYPE = 0,
@@ -12,8 +13,12 @@ module iceMCU#(
     input clk,
 	output [7:0] gpio_o,
 	input [7:0] gpio_i,
-	input RX,				// serial RX
-	output TX,				// serial TX
+	input uart_rx,
+	output uart_tx,
+	output spi_sclk,
+	output spi_mosi,
+	input spi_miso,
+	output spi_cs,
 	output [7:0] debug
 );
 	// param
@@ -59,18 +64,20 @@ module iceMCU#(
 	wire ram_sel = (CPU_AB < RAM_SIZE) ? 1 : 0;
 	wire gpio_sel = (CPU_AB[15:12] == 4'h8) && (CPU_AB[11:4] == 8'h00) ? 1 : 0;
 	wire uart_sel = (CPU_AB[15:12] == 4'h8) && (CPU_AB[11:4] == 8'h01) ? 1 : 0;
+	wire spi_sel = (CPU_AB[15:12] == 4'h8) && (CPU_AB[11:4] == 8'h02) ? 1 : 0;
 	wire rom_sel = (CPU_AB >= ROM_LOC) & (CPU_AB < (ROM_LOC+ROM_SIZE)) ? 1 : 0;
 	
 	// data mux
-	reg [3:0] mux_sel;
+	reg [4:0] mux_sel;
 	always @(posedge clk)
-		mux_sel <= {rom_sel,uart_sel,gpio_sel,ram_sel};
+		mux_sel <= {rom_sel,spi_sel,uart_sel,gpio_sel,ram_sel};
 	always @(*)
 		casez(mux_sel)
-			4'b0001: CPU_DI = ram_do;
-			4'b001z: CPU_DI = gpio_do;
-			4'b01zz: CPU_DI = uart_do;
-			4'b1zzz: CPU_DI = rom_do;
+			5'b00001: CPU_DI = ram_do;
+			5'b0001z: CPU_DI = gpio_do;
+			5'b001zz: CPU_DI = uart_do;
+			5'b01zzz: CPU_DI = spi_do;
+			5'b1zzzz: CPU_DI = rom_do;
 			default: CPU_DI = rom_do;
 		endcase
 		
@@ -130,11 +137,29 @@ module iceMCU#(
 		.addr(CPU_AB[1:0]),		// addr bus input
 		.din(CPU_DO),			// data bus input
 		.dout(uart_do),			// data bus output
-		.rx(RX),				// serial receive
-		.tx(TX),				// serial transmit
+		.rx(uart_rx),			// serial receive
+		.tx(uart_tx),			// serial transmit
 		.debug(debug)
 	);
 	defparam uuart.UART_CLK = 12000000;
 	defparam uuart.BAUD_RATE = 115200;
+
+	wire [7:0] spi_do;
+	spi_wrapper uspi(
+		.clk(clk),				// system clock
+		.rst(reset),			// system reset
+		.cs(spi_sel),			// chip select
+		.we(CPU_WE),			// write enable
+		.addr(CPU_AB[1:0]),		// addr bus input
+		.din(CPU_DO),			// data bus input
+		.dout(spi_do),			// data bus output
+		.sclk(spi_sclk),
+		.mosi(spi_mosi),
+		.miso(spi_miso),
+		.spi_cs(spi_cs)
+	);
+	defparam uspi.CPOL = 1'b0;
+	defparam uspi.CPHA = 1'b0;
+	defparam uspi.SPI_DIV = 8'd6;
 
 endmodule

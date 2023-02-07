@@ -4,10 +4,16 @@
 `include "src/iceMCU.v"
 
 module top(
-    // serial
+    // uart
     input uart_rxd,
     output uart_txd,
 	
+	// spi
+	output spi_sclk,
+	output spi_mosi,
+	input spi_miso,
+	output spi_cs,
+
 	// LED
 	output LED_B, LED_R, LED_G,
 	input [3:0] SW,
@@ -87,8 +93,13 @@ module top(
 		.gpio_o(gpio_o),
 		.gpio_i(gpio_i),
     
-        .RX(rxpin),
-        .TX(txpin),
+        .uart_rx(rxpin),
+        .uart_tx(txpin),
+		.spi_sclk(spi_sclk),
+		.spi_mosi(spi_mosi),
+		.spi_miso(spi_miso),
+		.spi_cs(spi_cs),
+
 		.debug(DEBUG)
 	);
     defparam core.RAM_TYPE = 1; // 0 => BRAM, 1 => SPRAM (UltraPlus)
