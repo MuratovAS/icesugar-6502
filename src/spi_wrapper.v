@@ -32,8 +32,8 @@ module spi_wrapper#(
 	wire[7:0] data_rd;
 	wire req_next;
 
-	wire transmit =  cs & we;
-	wire receive =  cs & !we;
+	wire write_sel =  cs & we;
+	wire read_sel =  cs & !we;
 
 	wire[7:0] status = 
 	{
@@ -49,7 +49,7 @@ module spi_wrapper#(
 
     always @(posedge clk)
     begin
-		if (receive) begin
+		if (read_sel) begin
 			case(addr)
 				2'h0 : dout <= data_rd;
 				2'h1 : dout <= status;
@@ -57,7 +57,7 @@ module spi_wrapper#(
 			endcase
 		end
 
-        if (transmit) begin
+        if (write_sel) begin
             case(addr)
 				2'h0 : data_wr <= din;
 				2'h1 : command <= din;
