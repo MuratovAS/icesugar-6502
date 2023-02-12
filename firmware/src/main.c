@@ -16,9 +16,11 @@ char strbuf[180];
 
 int main()
 {
+    GPIO_DATA = 0b00000101;
 	uart_write("BOOT\r\n");
     snprintf(strbuf, sizeof(strbuf), "Hello world, 6502 SoC\r\n");
     uart_write(strbuf);
+    GPIO_DATA = 0b00000010;
 
     //asm("SEI");		// disable IRQ
 	//asm("CLI");		// enable IRQ
@@ -31,6 +33,8 @@ int main()
  	
 	snprintf(strbuf, sizeof(strbuf), "Action key:\n\r a - Test portA \n\r s - Test SPI Flash\n\r d - Test DMA \n\r r - CPU Reset \n\r c - View ROM \n\r m - View RAM \n\r t - Test RAM \n\r");
     uart_write(strbuf);
+    GPIO_DATA = 0b00000100;
+
     while(1)
     {
         int8_t uart_rx = getchar();

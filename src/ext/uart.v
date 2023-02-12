@@ -79,7 +79,7 @@ module uarttx_m
    output reg  txpin, txbusy
    );
    reg [9:0]   a;
-`ifdef SIMULATION
+`ifdef SIM
    initial begin txbusy = 0; txpin = 0; a = 0;  end
 `endif   
    always @(posedge clk) 
@@ -97,7 +97,7 @@ module uartrxsm_m
     output reg [1:0] rxst
     );
    reg [1:0]         nxt;   
-`ifdef SIMULATION
+`ifdef SIM
    initial rxst = 0;
 `endif
    always @(/*AS*/lastbit or rxce or rxpin or rxst) begin
@@ -129,7 +129,7 @@ module uartrx_m
     output [1:0]     rxst,
     output reg [7:0] q
     );
-`ifdef SIMULATION
+`ifdef SIM
    initial q = 0;
 `endif
    uartrxsm_m #(.HUNT(HUNT), .GRCE(GRCE), .ARMD(ARMD), .RECV(RECV))
@@ -160,7 +160,7 @@ module rxtxdiv_m
    localparam   rstval = SUBDIV16 ? (ADJUSTSAMPLEPOINT ? 4'b1001 : 4'b1000) :
                                     (ADJUSTSAMPLEPOINT ? 3'b101  : 3'b100);
    reg [2+SUBDIV16:0]    txcnt,rxcnt;
-`ifdef SIMULATION
+`ifdef SIM
    initial txcnt = 0;
 `endif
    always @(posedge clk) begin

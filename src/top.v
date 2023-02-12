@@ -4,6 +4,10 @@
 `include "src/iceMCU.v"
 
 module top(
+	`ifdef SIM
+	input clk,
+	`endif
+
     // uart
     input uart_rxd,
     output uart_txd,
@@ -27,13 +31,18 @@ module top(
 	wire clk_48m;
 	wire clk_12m;
 	
+	`ifndef SIM
 	//internal oscillators seen as modules
 	//Source = 48MHz, CLKHF_DIV = 2’b00 : 00 = div1, 01 = div2, 10 = div4, 11 = div8 ; Default = “00”
+	//SB_HFOSC SB_HFOSC_inst(
 	SB_HFOSC #(.CLKHF_DIV("0b10")) SB_HFOSC_inst (
 		.CLKHFEN(32'b1),
 		.CLKHFPU(32'b1),
 		.CLKHF(clk_12m)
 	);
+	`else
+		assign clk_12m = clk;
+	`endif
 
 	//10khz used for low power applications (or sleep mode)
 	/*SB_LFOSC SB_LFOSC_inst(

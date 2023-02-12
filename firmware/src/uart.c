@@ -4,7 +4,7 @@
 
 int putchar(int c)
 {
-    while ((UART_STAT & UART_STAT_TXE))
+    //while ((UART_STAT & UART_STAT_TXE))
     {
         #if defined(WDT)
             WDTRST;
@@ -16,7 +16,7 @@ int putchar(int c)
 
 int getchar()
 {
-    while (!(UART_STAT & UART_STAT_RXF))
+    //while (!(UART_STAT & UART_STAT_RXF))
     {
         #if defined(WDT)
             WDTRST;

@@ -4,8 +4,8 @@
 `include "src/ext/uart.v"
 
 module uart_wrapper#(
-	parameter UART_CLK = 12000000,
-	parameter BAUD_RATE = 115200
+	parameter integer UART_CLK = 12000000,
+	parameter integer BAUD_RATE = 115200
 )(
 	input clk,				// system clock
 	input rst,				// system reset
