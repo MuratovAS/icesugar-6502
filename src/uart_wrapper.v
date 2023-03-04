@@ -22,8 +22,8 @@ module uart_wrapper#(
 
 	// reg
 	reg		receiveFlag = 1'b0;
-	reg	load;
-	reg [7:0] dout;
+	reg	load = 1'b0;
+	reg [7:0] dout = 8'h00;
 
 	// wire
 	wire	bytercvd;
@@ -73,7 +73,7 @@ module uart_wrapper#(
 
 	//clock cycle
 	wire bitxce;
-	reg [log2(UART_DIV)-1:0] bitxcecnt;
+	reg [log2(UART_DIV)-1:0] bitxcecnt = 0;
 	always @(posedge clk)
 		bitxcecnt <= (bitxcecnt == UART_DIV-1 ? 0 : bitxcecnt+1);
 	assign bitxce = (bitxcecnt == 0 ? 1 : 0); // + LUTs
